@@ -10,7 +10,10 @@
   align-items: center;
   flex-wrap: wrap;
   padding: 2rem;
-  margin-top: 50vh;
+  
+  /* margin-top: 50vh;
+  background-color: aqua;
+  z-index: +10; */
 }
 
 /* Words */
@@ -36,6 +39,8 @@
   pointer-events: none;
   box-sizing: content-box;
   border: none;
+  /* z-index: -50;
+  background-color: antiquewhite; */
 }
 
 .corner {

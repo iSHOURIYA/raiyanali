@@ -41,12 +41,16 @@
   color: #888;
 }
 .container {
-  height: 100%;
-  width: 100%;
+  height: 10%;
+  width: 10%;
   display: flex;
   justify-content: center;
+  z-index: -1;
   align-items: center;
   border: 5ch solid #f0f;
+}
+.Hyperspeed {
+  z-index: -1;
 }
 
 .Main {

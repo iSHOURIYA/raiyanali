@@ -8,12 +8,11 @@ import "./blocks/Backgrounds/Hyperspeed/Hyperspeed.css";
 function App() {
   return (
     <div id = "main">
-      <div>
+
+      <div class = "container">
         <Hyperspeed />
       </div>
-      <div class = "container">
-        <TrueFocus />
-      </div>
+    <TrueFocus />
     </div>
 
   );
