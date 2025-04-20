@@ -1,0 +1,157 @@
+/* Base Styles */
+body {
+  background-color: #0f172a;
+  color: #e2e8f0;
+  font-family: 'Roboto', sans-serif;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  transition: all 0.3s ease;
+}
+
+body.light-mode {
+  background-color: #f7fafc;
+  color: #1a202c;
+}
+
+.container {
+  background: #1e293b;
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  width: 100%;
+  max-width: 700px;
+  text-align: center;
+}
+
+h1 {
+  color: #38bdf8;
+  font-size: 2.5rem;
+  margin-bottom: 20px;
+}
+
+.theme-toggle {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background-color: transparent;
+  border: none;
+  color: #38bdf8;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+body.light-mode .theme-toggle {
+  color: #1a202c;
+}
+
+.controls {
+  margin-top: 20px;
+}
+
+.control-group {
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+label {
+  display: block;
+  font-size: 1rem;
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+
+input[type="range"], select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #334155;
+  background-color: #0f172a;
+  color: #e2e8f0;
+  margin-bottom: 10px;
+}
+
+input[type="range"] {
+  width: 80%;
+  margin: 0 auto;
+}
+
+button {
+  background-color: #38bdf8;
+  color: #1e293b;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 20px;
+}
+
+button:hover {
+  background-color: #0ea5e9;
+}
+
+a {
+  display: block;
+  margin-top: 15px;
+  color: #22c55e;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Visualizer */
+canvas#visualizer {
+  margin-top: 30px;
+  background-color: #111;
+  border-radius: 8px;
+  width: 100%;
+  height: 100px;
+}
+
+#search-section {
+  margin-top: 40px;
+  text-align: left;
+}
+
+#search-input {
+  width: 80%;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #334155;
+  background-color: #0f172a;
+  color: #e2e8f0;
+}
+
+#search-btn {
+  background-color: #3b82f6;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+#search-results {
+  margin-top: 20px;
+}
+
+.search-item {
+  padding: 10px;
+  background-color: #1e293b;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.search-item:hover {
+  background-color: #334155;
+}
