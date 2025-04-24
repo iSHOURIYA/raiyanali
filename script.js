@@ -16,6 +16,10 @@ let delayNode;
 let distortionNode;
 let eqNodes = {};
 
+// FreesoundAPI config
+const FREESOUND_API_KEY = 'YOUR_API_KEY'; // Replace this with your actual API key from https://freesound.org/apiv2/apply/
+let currentSoundData = null; // To store currently loaded sound data
+
 // Effects state
 let reverbLevel = 0;
 let delayLevel = 0;
@@ -24,6 +28,60 @@ let distortionLevel = 0;
 // Track management
 let track1, track2;
 let track1GainNode, track2GainNode;
+
+// Save user's preferred settings
+function saveUserSettings() {
+  const settings = {
+    frequency: document.getElementById('frequency').value,
+    duration: document.getElementById('duration').value,
+    volume: document.getElementById('volume').value,
+    waveform: document.getElementById('waveform').value,
+    reverb: document.getElementById('reverb').value,
+    delay: document.getElementById('delay').value,
+    distortion: document.getElementById('distortion').value,
+    track1Freq: document.getElementById('track1-freq').value,
+    track1Vol: document.getElementById('track1-vol').value,
+    track1Waveform: document.getElementById('track1-waveform').value,
+    track2Freq: document.getElementById('track2-freq').value,
+    track2Vol: document.getElementById('track2-vol').value,
+    track2Waveform: document.getElementById('track2-waveform').value
+  };
+  
+  localStorage.setItem('djSettings', JSON.stringify(settings));
+}
+
+// Load user's preferred settings
+function loadUserSettings() {
+  const savedSettings = localStorage.getItem('djSettings');
+  if (!savedSettings) return;
+  
+  const settings = JSON.parse(savedSettings);
+  
+  // Apply saved settings to UI
+  if (settings.frequency) document.getElementById('frequency').value = settings.frequency;
+  if (settings.duration) document.getElementById('duration').value = settings.duration;
+  if (settings.volume) document.getElementById('volume').value = settings.volume;
+  if (settings.waveform) document.getElementById('waveform').value = settings.waveform;
+  if (settings.reverb) document.getElementById('reverb').value = settings.reverb;
+  if (settings.delay) document.getElementById('delay').value = settings.delay;
+  if (settings.distortion) document.getElementById('distortion').value = settings.distortion;
+  
+  // Apply mixer track settings
+  if (settings.track1Freq) document.getElementById('track1-freq').value = settings.track1Freq;
+  if (settings.track1Vol) document.getElementById('track1-vol').value = settings.track1Vol;
+  if (settings.track1Waveform) document.getElementById('track1-waveform').value = settings.track1Waveform;
+  if (settings.track2Freq) document.getElementById('track2-freq').value = settings.track2Freq;
+  if (settings.track2Vol) document.getElementById('track2-vol').value = settings.track2Vol;
+  if (settings.track2Waveform) document.getElementById('track2-waveform').value = settings.track2Waveform;
+  
+  // Trigger input events to update displays
+  document.getElementById('frequency').dispatchEvent(new Event('input'));
+  document.getElementById('duration').dispatchEvent(new Event('input'));
+  document.getElementById('volume').dispatchEvent(new Event('input'));
+  document.getElementById('reverb').dispatchEvent(new Event('input'));
+  document.getElementById('delay').dispatchEvent(new Event('input'));
+  document.getElementById('distortion').dispatchEvent(new Event('input'));
+}
 
 // Initialize when the document is fully loaded
 document.addEventListener('DOMContentLoaded', function() {
@@ -71,6 +129,35 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // EQ sliders
   const eqFrequencies = [60, 170, 310, 600, 1000, 3000, 6000, 12000];
+  
+  // Create overlay for user interaction to initialize audio
+  const audioStartOverlay = document.createElement('div');
+  audioStartOverlay.className = 'audio-start-overlay';
+  audioStartOverlay.innerHTML = `
+    <div class="start-prompt">
+      <h2><i class="fas fa-power-off"></i> Start Audio Engine</h2>
+      <p>Click anywhere to initialize the audio system</p>
+      <button class="start-button">Start</button>
+    </div>
+  `;
+  
+  document.body.appendChild(audioStartOverlay);
+  
+  const startAudio = () => {
+    initAudio();
+    audioStartOverlay.style.opacity = '0';
+    setTimeout(() => {
+      audioStartOverlay.remove();
+    }, 500);
+  };
+  
+  audioStartOverlay.addEventListener('click', startAudio);
+  
+  // Check browser compatibility
+  checkBrowserCompatibility();
+
+  // Load user settings from local storage
+  loadUserSettings();
   
   // Initialize audio context when user interacts
   const initAudio = () => {
@@ -228,25 +315,30 @@ document.addEventListener('DOMContentLoaded', function() {
   // Update UI value displays
   freqSlider.addEventListener('input', function() {
     freqValue.textContent = this.value;
+    saveUserSettings();
   });
   
   durSlider.addEventListener('input', function() {
     durValue.textContent = this.value;
+    saveUserSettings();
   });
   
   volSlider.addEventListener('input', function() {
     volValue.textContent = this.value;
+    saveUserSettings();
   });
   
   // Connect effects sliders
   reverbSlider.addEventListener('input', function() {
     reverbLevel = parseFloat(this.value);
     reverbValueDisplay.textContent = reverbLevel.toFixed(2);
+    saveUserSettings();
   });
   
   delaySlider.addEventListener('input', function() {
     delayLevel = parseFloat(this.value);
     delayValueDisplay.textContent = delayLevel.toFixed(2);
+    saveUserSettings();
   });
   
   distortionSlider.addEventListener('input', function() {
@@ -257,6 +349,7 @@ document.addEventListener('DOMContentLoaded', function() {
       distortionNode.curve = createDistortionCurve(distortionLevel);
       distortionNode.oversample = '4x';
     }
+    saveUserSettings();
   });
   
   // Play button functionality
@@ -717,7 +810,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 1000);
   }
   
-  // Search Freesound API for samples (placeholder - would need API key for actual implementation)
+  // Search Freesound API for samples
   window.searchFreesound = function() {
     const query = document.getElementById('search-input').value;
     
@@ -726,45 +819,180 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
     
-    // Simulate search results
+    // Making actual API call to Freesound
     const results = document.getElementById('search-results');
     results.innerHTML = '<div class="digital-display">Loading results...</div>';
     
-    setTimeout(() => {
-      const sampleResults = [
-        { name: "Drum Loop", duration: "2s" },
-        { name: "Bass Drop", duration: "1s" },
-        { name: "Synth Lead", duration: "3s" },
-        { name: "Vocal Sample", duration: "2s" },
-        { name: "Ambient Pad", duration: "5s" },
-        { name: "Kick Drum", duration: "0.5s" },
-        { name: "Hi-Hat", duration: "0.2s" },
-        { name: "Clap", duration: "0.3s" }
-      ];
-      
-      const resultList = document.createElement('div');
-      resultList.className = 'search-result-list';
-      
-      sampleResults.forEach((result, index) => {
-        const item = document.createElement('div');
-        item.className = 'search-item';
-        item.innerHTML = `
-          ${result.name}<br>
-          <small>${result.duration}</small>
-        `;
-        item.style.animationDelay = (index * 0.1) + 's';
-        item.style.opacity = 1;
+    // Use the client-side search endpoint with token authentication
+    fetch(`https://freesound.org/apiv2/search/text/?query=${encodeURIComponent(query)}&token=${FREESOUND_API_KEY}`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Network response was not ok: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (!data.results || data.results.length === 0) {
+          results.innerHTML = '<div class="digital-display">No results found</div>';
+          return;
+        }
         
-        // Add click handler
-        item.addEventListener('click', () => loadSample(result.name));
+        const resultList = document.createElement('div');
+        resultList.className = 'search-result-list';
         
-        resultList.appendChild(item);
+        data.results.forEach((result, index) => {
+          const item = document.createElement('div');
+          item.className = 'search-item';
+          item.innerHTML = `
+            ${result.name}<br>
+            <small>${result.duration ? result.duration.toFixed(1) + 's' : ''}</small>
+          `;
+          item.style.animationDelay = (index * 0.1) + 's';
+          item.style.opacity = 1;
+          
+          // Add click handler
+          item.addEventListener('click', () => loadFreesoundSample(result.id));
+          
+          resultList.appendChild(item);
+        });
+        
+        results.innerHTML = '';
+        results.appendChild(resultList);
+      })
+      .catch(error => {
+        console.error('Error fetching from Freesound API:', error);
+        results.innerHTML = `<div class="digital-display">Error: ${error.message}</div>`;
       });
-      
-      results.innerHTML = '';
-      results.appendChild(resultList);
-    }, 1000);
   };
+  
+  // Load an actual sample from Freesound API
+  function loadFreesoundSample(id) {
+    if (!audioContext) initAudio();
+    
+    const results = document.getElementById('search-results');
+    results.innerHTML = '<div class="digital-display">Loading sample...</div>';
+    
+    // Get sound details from Freesound API
+    fetch(`https://freesound.org/apiv2/sounds/${id}/?token=${FREESOUND_API_KEY}`)
+      .then(response => {
+        if (!response.ok) throw new Error(`Network response was not ok: ${response.status}`);
+        return response.json();
+      })
+      .then(soundData => {
+        currentSoundData = soundData;
+        
+        // Get preview URL from sound data
+        return fetch(`${soundData.previews['preview-hq-mp3']}?token=${FREESOUND_API_KEY}`);
+      })
+      .then(response => {
+        if (!response.ok) throw new Error('Failed to fetch audio preview');
+        return response.blob();
+      })
+      .then(blob => {
+        const audioURL = URL.createObjectURL(blob);
+        
+        const soundCard = document.createElement('div');
+        soundCard.className = 'sound-card';
+        
+        soundCard.innerHTML = `
+          <h3>${currentSoundData.name}</h3>
+          <div class="custom-audio-player">
+            <audio controls src="${audioURL}" id="freesound-player"></audio>
+          </div>
+          <div class="dj-controls-buttons">
+            <button class="add-to-mix-btn"><i class="fas fa-plus"></i> Add to Mix</button>
+            <button class="edit-sample-btn"><i class="fas fa-sliders-h"></i> Edit</button>
+            <a href="${currentSoundData.previews['preview-hq-mp3']}" download="${currentSoundData.name}.mp3" class="download-sample-btn">
+              <i class="fas fa-download"></i> Download
+            </a>
+          </div>
+          <div class="applied-effects">
+            <p>Sample Info</p>
+            <div class="effects-tags">
+              <span class="effect-tag reverb">Duration: ${currentSoundData.duration.toFixed(2)}s</span>
+              <span class="effect-tag delay">Filesize: ${Math.round(currentSoundData.filesize / 1024)} KB</span>
+            </div>
+          </div>
+        `;
+        
+        results.innerHTML = '';
+        results.appendChild(soundCard);
+        
+        // Set up event listeners for the sample
+        const audioElement = document.getElementById('freesound-player');
+        
+        // Add to mix button handler
+        soundCard.querySelector('.add-to-mix-btn').addEventListener('click', () => {
+          if (audioContext && audioElement) {
+            createSampleFromAudio(audioElement, currentSoundData);
+          }
+        });
+        
+        // Edit sample button handler
+        soundCard.querySelector('.edit-sample-btn').addEventListener('click', () => {
+          // Update UI with sample info
+          document.getElementById('freq-value').textContent = "Sample";
+          document.getElementById('dur-value').textContent = currentSoundData.duration.toFixed(2);
+          
+          // Focus the effects section
+          document.querySelector('h3 i.fa-magic').scrollIntoView({ behavior: 'smooth' });
+        });
+      })
+      .catch(error => {
+        console.error('Error loading sound:', error);
+        results.innerHTML = `<div class="digital-display">Error: ${error.message}</div>`;
+      });
+  }
+  
+  // Create a sample from audio element
+  function createSampleFromAudio(audioElement, soundData) {
+    // Create audio source from the audio element
+    const audioSource = audioContext.createMediaElementSource(audioElement);
+    
+    // Connect through effects
+    let currentNode = audioSource;
+    
+    if (reverbLevel > 0) {
+      const reverbGain = audioContext.createGain();
+      reverbGain.gain.value = reverbLevel;
+      currentNode.connect(reverbGain);
+      reverbGain.connect(reverbNode);
+      currentNode = reverbNode;
+    }
+    
+    if (delayLevel > 0) {
+      const delayGain = audioContext.createGain();
+      delayGain.gain.value = delayLevel;
+      currentNode.connect(delayGain);
+      delayGain.connect(delayNode);
+      currentNode = delayNode;
+    }
+    
+    if (distortionLevel > 0) {
+      distortionNode.curve = createDistortionCurve(distortionLevel);
+      currentNode.connect(distortionNode);
+      currentNode = distortionNode;
+    }
+    
+    // Connect to the analyzer and output
+    currentNode.connect(analyser);
+    currentNode.connect(audioContext.destination);
+    
+    // Play the audio
+    audioElement.play();
+    
+    // Show feedback
+    const notification = document.createElement('div');
+    notification.className = 'notification';
+    notification.innerHTML = `<i class="fas fa-check"></i> Added "${soundData.name}" to mix`;
+    document.body.appendChild(notification);
+    
+    // Remove notification after 3 seconds
+    setTimeout(() => {
+      notification.style.opacity = '0';
+      setTimeout(() => notification.remove(), 500);
+    }, 3000);
+  }
   
   // Simulate loading a sample (in a real app, this would load audio from an API)
   function loadSample(name) {
@@ -795,6 +1023,42 @@ document.addEventListener('DOMContentLoaded', function() {
     results.appendChild(soundCard);
   }
 });
+
+// Check browser compatibility and show warnings
+function checkBrowserCompatibility() {
+  let warnings = [];
+  
+  // Check for Web Audio API
+  if (!window.AudioContext && !window.webkitAudioContext) {
+    warnings.push("Web Audio API is not supported. Sound generation won't work.");
+  }
+  
+  // Check for MediaRecorder API
+  if (!window.MediaRecorder) {
+    warnings.push("MediaRecorder API is not supported. Recording won't work.");
+  }
+  
+  // Check for Canvas support
+  const canvas = document.createElement('canvas');
+  if (!canvas.getContext || !canvas.getContext('2d')) {
+    warnings.push("Canvas is not supported. Visualizer won't work.");
+  }
+  
+  // Display warnings if any
+  if (warnings.length > 0) {
+    const warningContainer = document.createElement('div');
+    warningContainer.className = 'browser-warnings';
+    
+    let warningHTML = '<h3>Browser Compatibility Warnings:</h3><ul>';
+    warnings.forEach(warning => {
+      warningHTML += `<li>${warning}</li>`;
+    });
+    warningHTML += '</ul>';
+    
+    warningContainer.innerHTML = warningHTML;
+    document.body.appendChild(warningContainer);
+  }
+}
 
 // Custom waveform data (can be expanded)
 customWaveform = {
